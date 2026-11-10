@@ -51,3 +51,19 @@ This creates a fresh `prisma/e2e.db`, builds, starts on port 3100, and runs:
 | `prisma/schema.prisma` | Product, Cart, CartItem, Order, OrderItem, ProcessedWebhookEvent |
 
 Order statuses: `pending` → `paid` → `refunded`, or `pending` → `canceled`. Money is stored in integer cents.
+
+## PayPal (sandbox)
+
+The cart page also offers PayPal (JS SDK v6 `<paypal-button>`, Pay Later button and messaging) next to the Stripe button.
+
+- Env vars: `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_WEBHOOK_ID`, `PAYPAL_ENV` (`sandbox` | `production`). The buttons only render when the client id and secret are set.
+- Webhook: point a PayPal webhook at `<APP_URL>/api/webhooks/paypal` and subscribe to `PAYMENT.CAPTURE.COMPLETED`, `PAYMENT.CAPTURE.DENIED` and `PAYMENT.CAPTURE.REFUNDED`. Every event is signature-verified with PayPal and deduplicated in `ProcessedWebhookEvent` (`paypal:<event id>`).
+- Negative testing: in the sandbox only, a `PayPal-Mock-Response` header sent to `POST /api/checkout/paypal/capture` is forwarded to PayPal's capture call, e.g. `{"mock_application_codes":"INSTRUMENT_DECLINED"}`.
+- Admin refunds use the same button; `proxy.ts` routes PayPal orders to `app/api/admin/orders/[id]/refund/paypal/route.ts`.
+
+| Path | What |
+|---|---|
+| `lib/paypal.ts` | PayPal SDK client, client token, webhook signature verification |
+| `lib/paypal-checkout.ts` | Create/capture/cancel/refund PayPal orders against store orders, webhook handlers |
+| `app/api/checkout/paypal/*` | `client-token`, `orders`, `capture`, `cancel` routes used by `components/PayPalCheckout.tsx` |
+| `app/api/webhooks/paypal/route.ts` | Verified PayPal webhooks |
