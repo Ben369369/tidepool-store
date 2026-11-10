@@ -26,7 +26,7 @@ export class PayPalCheckoutError extends Error {
  * Creates the store order from the server-side cart (exactly as the Stripe
  * flow does) and a matching PayPal order. Nothing from the browser is used.
  */
-export async function createPayPalOrderForCart(cartId: string, opts: { displayedTotal?: string } = {}) {
+export async function createPayPalOrderForCart(cartId: string) {
   const order = await createPendingOrderFromCart(cartId);
   const currencyCode = order.currency.toUpperCase();
 
@@ -44,16 +44,12 @@ export async function createPayPalOrderForCart(cartId: string, opts: { displayed
         {
           referenceId: order.id,
           customId: order.id,
-          // Show PayPal the total from the cart page. With promo codes coming, the
-          // item breakdown won't add up to it, so it's only sent when no total is given.
-          amount: opts.displayedTotal
-            ? { currencyCode, value: opts.displayedTotal }
-            : {
-                currencyCode,
-                value: centsToDecimalString(order.totalCents),
-                breakdown: { itemTotal: { currencyCode, value: centsToDecimalString(itemTotalCents) } },
-              },
-          items: opts.displayedTotal ? undefined : order.items.map((item) => ({
+          amount: {
+            currencyCode,
+            value: centsToDecimalString(order.totalCents),
+            breakdown: { itemTotal: { currencyCode, value: centsToDecimalString(itemTotalCents) } },
+          },
+          items: order.items.map((item) => ({
             name: item.name.slice(0, 127),
             sku: item.productId.slice(0, 127),
             quantity: String(item.quantity),
