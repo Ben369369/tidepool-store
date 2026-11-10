@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { getCurrentCart } from "@/lib/cart";
-import { formatCents } from "@/lib/money";
+import { centsToDecimalString, formatCents } from "@/lib/money";
+import { isPayPalConfigured, paypalWebSdkUrl } from "@/lib/paypal";
+import { PayPalCheckout } from "@/components/PayPalCheckout";
 
 export const dynamic = "force-dynamic";
 
@@ -88,6 +90,10 @@ export default async function CartPage({ searchParams }: PageProps<"/cart">) {
                 Pay with card
               </button>
             </form>
+            {/* PayPal buttons; its Pay Later message is ordered first, directly under the subtotal. */}
+            {isPayPalConfigured() && (
+              <PayPalCheckout amount={centsToDecimalString(cart.subtotalCents)} sdkUrl={paypalWebSdkUrl()} />
+            )}
           </div>
         </>
       )}
