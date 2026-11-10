@@ -158,7 +158,7 @@ export function PayPalCheckout({ amount, sdkUrl }: { amount: string; sdkUrl: str
     const res = await fetch("/api/checkout/paypal/orders", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: "{}",
+      body: JSON.stringify({ amount }),
     });
     const data = await readJson(res);
     if (!res.ok || typeof data.orderId !== "string") {
