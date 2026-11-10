@@ -5,14 +5,18 @@ import { createPayPalOrderForCart } from "@/lib/paypal-checkout";
 
 /**
  * Creates the store order and the PayPal order from the server-side cart.
- * The request body is ignored: amounts and items come from the database.
+ * The total shown on the cart page is passed along so PayPal displays exactly
+ * what the shopper saw (prep for promo codes, which aren't in the cart model yet).
  */
-export async function POST() {
+export async function POST(request: Request) {
+  const { amount } = (await request.json().catch(() => ({}))) as { amount?: unknown };
   const cartId = await getCartId();
   if (!cartId) return NextResponse.json({ error: "Your cart is empty." }, { status: 400 });
 
   try {
-    const { paypalOrderId } = await createPayPalOrderForCart(cartId);
+    const { paypalOrderId } = await createPayPalOrderForCart(cartId, {
+      displayedTotal: typeof amount === "string" ? amount : undefined,
+    });
     return NextResponse.json({ orderId: paypalOrderId });
   } catch (err) {
     if (err instanceof EmptyCartError) return NextResponse.json({ error: "Your cart is empty." }, { status: 400 });
