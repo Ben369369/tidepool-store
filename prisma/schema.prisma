@@ -51,6 +51,10 @@ model Order {
   customerEmail           String?
   stripeCheckoutSessionId String?     @unique
   stripePaymentIntentId   String?     @unique
+  /// "stripe" | "paypal"; null for Stripe orders (the Stripe flow does not set it)
+  paymentProvider         String?
+  paypalOrderId           String?     @unique
+  paypalCaptureId         String?     @unique
   createdAt               DateTime    @default(now())
   paidAt                  DateTime?
   refundedAt              DateTime?
