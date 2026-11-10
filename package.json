@@ -16,6 +16,7 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@paypal/paypal-server-sdk": "^2.5.0",
     "@prisma/adapter-better-sqlite3": "7.10.1",
     "@prisma/client": "^7.10.1",
     "next": "16.4.5",
